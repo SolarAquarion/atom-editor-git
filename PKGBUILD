@@ -6,7 +6,7 @@
 
 _name=atom
 pkgname=atom-editor-git
-pkgver=1.56.0.dev.r53.g3d5c83be9
+pkgver=1.35.0.r2223.g924b06347
 pkgrel=1
 pkgdesc='Hackable text editor for the 21st Century - git channel'
 arch=('x86_64')
@@ -31,30 +31,21 @@ source=("git+https://github.com/atom-community/atom.git"
         'symbols-view-use-system-ctags.patch'
         'use-system-apm.patch'
         'use-system-electron.patch')
-        sha256sums=(
-            'SKIP'
+sha256sums=('SKIP'
             '6ae4f78667a8735d24ba11a47f1ee374f65325a3d604bcd221d56e27e16ddad4'
             '530b46d31df0f5e8f5881e1608a66fe75d549092a6db2e72ba3ad69c48714153'
-            'b3d3706519556a59ba557b695017c9debe8b23efe2782cdb440131520bc0540d'
+            'b739d15a3b0964b979b4007a15451358bd5cea6f157ffdd475869907e8943f6c'
             '2894cce31935d45291c5fe4c625473bb83fc51e1b899f162aa6b419491c7ace1'
             'e3c30c03006d23a72f07fa77f4309b16a6059af1179343033a87f74f50124076'
             'e321fdfe880cd465918dd1dbb90e4c7d46fc5310f20666eddf0a41cbca4f8ac8'
             '40d783794d62f12f3c429c624a84265871c7ed95f4120c9db800348896dd5437'
             'a09439c2a908ca174ff3be1f0d85071d12c792ae19748e36fe601e372d6d925b'
             'c93cc88dd704388d4b26a0de0a5938df7ff90cedf8eed0b3b8a675f9cc7d487c'
-            '08ae0c93b5ec7eb7d90c65d5d2adbaca538482fba902ed1f8414024db0d21854'
-            '0f809f3d2fb21e83ede312660c9169e239c874b0d7ed39e1c15301f6ce1ea056'
-        )
+            '510f9986f687251b34338495eabde2c79a31b90f5ecca3f120bf4e6f34974010'
+            '25875f16768d2b3f9b823de4e8760d65b519966570b38cd2a067de340d587ec1')
 
 pkgver() {
     cd ${_name}
-    atom_version=$(node -e 'console.log(require("./package").version)')
-    # To strip ".dev" from the package version, comment out the line above, and uncomment the line below.
-    # atom_version=$(node -e 'console.log(require("./package").version)' | grep -o '[0-9.]*')
-    atom_version_base_commit=$(git log --oneline | grep $atom_version | grep -o "[0-f]* ")
-    # If the command on the line above doesn't find a "base" commit on `master` branch for the current Atom version,
-    # then the latest commit on `master` branch will be tagged instead, and revisions (".r") in the package version will be "0".
-    git tag -f $atom_version $atom_version_base_commit
     # Remove 'v' prefix on tags; prefix revision with 'r'; replace all '-' with '.'
     git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
@@ -62,13 +53,13 @@ pkgver() {
 prepare() {
   cd ${_name}
 
-#  patch -Np1 -i ../fix-atom-sh.patch
-#  patch -Np1 -i ../use-system-electron.patch
-#  patch -Np1 -i ../use-system-apm.patch
-#  patch -Np1 -i ../fix-license-path.patch
- # patch -Np1 -i ../fix-restart.patch
-  #patch -Np1 -i ../node-env-production.patch
-  #patch -Np1 -i ../no-unsafe-eval-warning.patch
+  patch -Np1 -i ../fix-atom-sh.patch
+  patch -Np1 -i ../use-system-electron.patch
+  patch -Np1 -i ../use-system-apm.patch
+  patch -Np1 -i ../fix-license-path.patch
+  patch -Np1 -i ../fix-restart.patch
+  patch -Np1 -i ../node-env-production.patch
+  patch -Np1 -i ../no-unsafe-eval-warning.patch
 }
 
 build() {
@@ -104,7 +95,11 @@ build() {
 
   cd script
   npm install
-  # Hack to avoid using Node > 12 (https://github.com/babel/babel/issues/11216)
+
+  cd script-runner
+  npm install
+
+  cd ..
   # Set ELECTRON_VERSION (see use-system-electron.patch)
   env \
     ELECTRON_RUN_AS_NODE=1 \
